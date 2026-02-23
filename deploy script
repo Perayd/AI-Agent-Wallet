@@ -1,0 +1,12 @@
+async function main() {
+  const [deployer] = await ethers.getSigners();
+
+  const Wallet = await ethers.getContractFactory("AIAgentWallet");
+  const wallet = await Wallet.deploy("0xYourAIAgentAddress");
+
+  await wallet.waitForDeployment();
+
+  console.log("Wallet deployed to:", await wallet.getAddress());
+}
+
+main();

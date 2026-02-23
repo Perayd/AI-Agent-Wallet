@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract AIAgentWallet {
+
+    address public owner;
+    address public aiAgent;
+
+    event OwnershipTransferred(address indexed oldOwner, address indexed newOwner);
+    event AIAgentUpdated(address indexed oldAgent, address indexed newAgent);
+    event Executed(address indexed target, uint256 value, bytes data);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        _;
+    }
+
+    modifier onlyAuthorized() {
+        require(msg.sender == owner || msg.sender == aiAgent, "Not authorized");
+        _;
+    }
+
+    constructor(address _aiAgent) {
+        owner = msg.sender;
+        aiAgent = _aiAgent;
+    }
+
+    receive() external payable {}
+
+    function updateAIAgent(address _newAgent) external onlyOwner {
+        emit AIAgentUpdated(aiAgent, _newAgent);
+        aiAgent = _newAgent;
+    }
+
+    function transferOwnership(address _newOwner) external onlyOwner {
+        emit OwnershipTransferred(owner, _newOwner);
+        owner = _newOwner;
+    }
+
+    function execute(
+        address target,
+        uint256 value,
+        bytes calldata data
+    ) external onlyAuthorized returns (bytes memory) {
+
+        (bool success, bytes memory result) = target.call{value: value}(data);
+        require(success, "Transaction failed");
+
+        emit Executed(target, value, data);
+        return result;
+    }
+}
